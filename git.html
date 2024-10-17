@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Repository Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .repo-info {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .loading, .error {
+            color: red;
+        }
+        button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>GitHub Repository Finder</h1>
+
+    <!-- Language Selector -->
+    <div>
+        <label for="language">Select a Language:</label>
+        <select id="language">
+            <option value="">--Select a Language--</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="Python">Python</option>
+            <option value="Java">Java</option>
+            <!-- Add more languages as needed -->
+        </select>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" style="display: none;">Loading, please wait...</div>
+
+    <!-- Error State -->
+    <div class="error" style="display: none;">Error fetching repositories. <button onclick="fetchRepo()">Retry</button></div>
+
+    <!-- Empty State -->
+    <div class="empty">Please select a language</div>
+
+    <!-- Repo Information -->
+    <div class="repo-info" style="display: none;">
+        <h3 id="repo-name"></h3>
+        <p id="repo-description"></p>
+        <p>
+            ⭐ Stars: <span id="repo-stars"></span> <br>
+            🍴 Forks: <span id="repo-forks"></span> <br>
+            🛠 Open Issues: <span id="repo-issues"></span>
+        </p>
+        <button onclick="fetchRepo()">Refresh</button>
+    </div>
+</div>
+
+<script>
+    document.getElementById('language').addEventListener('change', fetchRepo);
+
+    function fetchRepo() {
+        const language = document.getElementById('language').value;
+        const loadingDiv = document.querySelector('.loading');
+        const errorDiv = document.querySelector('.error');
+        const emptyDiv = document.querySelector('.empty');
+        const repoInfoDiv = document.querySelector('.repo-info');
+
+        // Reset UI
+        loadingDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+        repoInfoDiv.style.display = 'none';
+
+        if (!language) {
+            emptyDiv.style.display = 'block';
+            return;
+        }
+
+        emptyDiv.style.display = 'none';
+        loadingDiv.style.display = 'block';
+
+        const url = `https://api.github.com/search/repositories?q=language:${language}&sort=stars&order=desc`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const repos = data.items;
+                if (repos.length > 0) {
+                    const randomRepo = repos[Math.floor(Math.random() * repos.length)];
+                    document.getElementById('repo-name').textContent = randomRepo.name;
+                    document.getElementById('repo-description').textContent = randomRepo.description;
+                    document.getElementById('repo-stars').textContent = randomRepo.stargazers_count;
+                    document.getElementById('repo-forks').textContent = randomRepo.forks_count;
+                    document.getElementById('repo-issues').textContent = randomRepo.open_issues_count;
+
+                    repoInfoDiv.style.display = 'block';
+                }
+                loadingDiv.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error fetching repository:', error);
+                loadingDiv.style.display = 'none';
+                errorDiv.style.display = 'block';
+            });
+    }
+</script>
+
+</body>
+</html>
